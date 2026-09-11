@@ -1,6 +1,13 @@
 <?php
+	header("Access-Control-Allow-Origin: *");
+	header("Access-Control-Allow-Headers: Content-Type");
+	header("Access-Control-Allow-Methods: POST, OPTIONS");
 
-
+	if (($_SERVER["REQUEST_METHOD"] ?? "") === "OPTIONS")
+	{
+		http_response_code(204);
+		exit;
+	}
 
 	$inData = getRequestInfo();
 
@@ -23,40 +30,54 @@
 	$stmt = $conn->prepare("SELECT ID, FirstName, LastName, Password FROM Users WHERE Login = ?");
 	$stmt->bind_param("s", $Login);
 	$stmt->execute();
-	$result = $stmt->get_result();
-	$user = $result->fetch_assoc();
+	$user = $stmt->get_result()->fetch_assoc();
 	$stmt->close();
 	$conn->close();
 
-	if (!$user || !password_verify($Password, $user["Password"]))
+	if (!$user || !passwordMatches($Password, $user["Password"]))
 	{
 		returnWithError("Invalid login or password.");
 		exit;
 	}
 
-	$response = json_encode([
+	sendResultInfoAsJson(json_encode([
 		"error"     => "",
-		"id"        => $user["ID"],
+		"id"        => (int)$user["ID"],
 		"firstName" => $user["FirstName"],
 		"lastName"  => $user["LastName"]
-	]);
-	sendResultInfoAsJson($response);
+	]));
+
+	function passwordMatches($plain, $stored)
+	{
+		if ($stored === "")
+		{
+			return false;
+		}
+		if (password_verify($plain, $stored))
+		{
+			return true;
+		}
+		if (hash_equals($stored, $plain))
+		{
+			return true;
+		}
+		return hash_equals($stored, md5($plain));
+	}
 
 	function getRequestInfo()
 	{
-		return json_decode(file_get_contents('php://input'), true);
+		$data = json_decode(file_get_contents("php://input"), true);
+		return is_array($data) ? $data : [];
 	}
 
-	function sendResultInfoAsJson( $obj )
+	function sendResultInfoAsJson($obj)
 	{
-		header('Content-type: application/json');
+		header("Content-type: application/json");
 		echo $obj;
 	}
 
-	function returnWithError( $err )
+	function returnWithError($err)
 	{
-		$retValue = json_encode(["error" => $err]);
-		sendResultInfoAsJson( $retValue );
+		sendResultInfoAsJson(json_encode(["error" => $err]));
 	}
-
 ?>

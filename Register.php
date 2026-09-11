@@ -1,6 +1,13 @@
 <?php
+	header("Access-Control-Allow-Origin: *");
+	header("Access-Control-Allow-Headers: Content-Type");
+	header("Access-Control-Allow-Methods: POST, OPTIONS");
 
-	//Creates a new user account. Password is hashed with password_hash() before storage —
+	if (($_SERVER["REQUEST_METHOD"] ?? "") === "OPTIONS")
+	{
+		http_response_code(204);
+		exit;
+	}
 
 	$inData = getRequestInfo();
 
@@ -22,7 +29,6 @@
 		exit;
 	}
 
-	// Reject duplicate logins up front so we return a clean error instead of a DB constraint failure.
 	$check = $conn->prepare("SELECT ID FROM Users WHERE Login = ?");
 	$check->bind_param("s", $Login);
 	$check->execute();
@@ -47,14 +53,12 @@
 		$newUserId = $conn->insert_id;
 		$stmt->close();
 		$conn->close();
-
-		$result = json_encode([
+		sendResultInfoAsJson(json_encode([
 			"error"     => "",
-			"id"        => $newUserId,
+			"id"        => (int)$newUserId,
 			"firstName" => $FirstName,
 			"lastName"  => $LastName
-		]);
-		sendResultInfoAsJson($result);
+		]));
 	}
 	else
 	{
@@ -66,19 +70,18 @@
 
 	function getRequestInfo()
 	{
-		return json_decode(file_get_contents('php://input'), true);
+		$data = json_decode(file_get_contents("php://input"), true);
+		return is_array($data) ? $data : [];
 	}
 
-	function sendResultInfoAsJson( $obj )
+	function sendResultInfoAsJson($obj)
 	{
-		header('Content-type: application/json');
+		header("Content-type: application/json");
 		echo $obj;
 	}
 
-	function returnWithError( $err )
+	function returnWithError($err)
 	{
-		$retValue = json_encode(["error" => $err]);
-		sendResultInfoAsJson( $retValue );
+		sendResultInfoAsJson(json_encode(["error" => $err]));
 	}
-
 ?>
