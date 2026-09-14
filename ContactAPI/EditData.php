@@ -1,16 +1,17 @@
 <?php
 
-	//Steffano Poggioli, COP4331C, 9/9/2026 Version 1.0
-	//Initial attempt for API to edit existing data
-	//DISCLAIMER: May cause data destruction, another sort of ID field may be needed for proper selection
+	//Steffano Poggioli, COP4331C, 9/14/2026 Version 1.1
+	//API for editing existing contacts, update to incorporate ID variable for selection logic
 
 	$inData = getRequestInfo();
 	
+	$ID = $inData["ID"];
+
 	$FirstName = $inData["FirstName"];
 	$LastName = $inData["LastName"];
     $Phone = $inData["Phone"];
     $Email = $inData["Email"];
-    $CreationDate = $inData["CreationDate"];
+    
 
 	$conn = new mysqli("localhost", "TheBeast", "WeLoveCOP4331", "COP4331");
 	if ($conn->connect_error) 
@@ -20,8 +21,8 @@
 	else
 	{
 		//SQL statement based on provided structure
-		$stmt = $conn->prepare("UPDATE Contacts SET FirstName = $FirstName, LastName = $LastName, Phone = $Phone, Email = $Email, CreationDate = $CreationDate WHERE CreationDate != $CreationDate");
-		$stmt->bind_param("ssssss", $FirstName, $LastName, $Phone, $Email, $CreationDate);
+		$stmt = $conn->prepare("UPDATE Contacts SET FirstName = $FirstName, LastName = $LastName, Phone = $Phone, Email = $Email WHERE ID = $ID);
+		$stmt->bind_param("ssss", $FirstName, $LastName, $Phone, $Email);
 		$stmt->execute();
 		$stmt->close();
 		$conn->close();

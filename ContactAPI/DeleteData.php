@@ -1,7 +1,7 @@
 <?php
 
-	//Steffano Poggioli, COP4331C, 9/9/2026 Version 1.1
-	//API for deleting from database, bug fix attempt 1
+	//Steffano Poggioli, COP4331C, 9/14/2026 Version 1.2
+	//API for deleting from database, logic improvement given ID variable field
 
 	$inData = getRequestInfo();
 	
@@ -10,6 +10,8 @@
     $Phone = $inData["Phone"];
     $Email = $inData["Email"];
     $CreationDate = $inData["CreationDate"];
+
+	$rowID;
 	
 	$conn = new mysqli("localhost", "TheBeast", "WeLoveCOP4331", "COP4331");
 	if ($conn->connect_error) 
@@ -19,8 +21,21 @@
 	else
 	{
 		//Initializing detection of present data
-		$stmt = $conn->prepare("DELETE FROM Contacts WHERE ((FirstName = $FirstName) AND (LastName = $LastName) AND (Phone = $Phone) AND (Email = $Email) AND (CreationDate = $CreationDate));
+		$stmt = $conn->prepare("SELECT ID FROM Contacts WHERE ((FirstName = $FirstName) AND (LastName = $LastName) AND (Phone = $Phone) AND (Email = $Email) AND (CreationDate = $CreationDate));
 		$stmt->execute();
+
+		if (0 < $stmt->num_rows) {
+  			while($firstRow = $stmt->fetch_assoc()) {
+
+				$rowID = $firstRow["ID"];
+
+				$deleteSTMT = $conn->prepare("DELETE FROM Contacts WHERE ID = $rowID);
+				$deleteSTMT->execute();
+				$deleteSTMT->close();
+				break;
+
+  			}
+		} 
 
 		$stmt->close();
 		$conn->close();
