@@ -1,18 +1,12 @@
 <?php
 
-	//Steffano Poggioli, COP4331C, 9/16/2026 Version 1.2
-	//API for editing existing contacts, update to fix punctuation syntax mistake
+	//Steffano Poggioli, COP4331C, 9/16/2026 Version 1.0
+	//API for retrieving and sending contact data for a particular user upon login
 
 	$inData = getRequestInfo();
-
-	$UserID = (int)($inData["UserID"] ?? 0);
 	
-	$ID = $inData["ID"];
-	$FirstName = $inData["FirstName"];
-	$LastName = $inData["LastName"];
-    $Phone = $inData["Phone"];
-    $Email = $inData["Email"];
-    
+    //UserID statement credited to Acsah's work
+    $UserID = (int)($inData["UserID"] ?? 0);
 
 	$conn = new mysqli("localhost", "TheBeast", "WeLoveCOP4331", "COP4331");
 	if ($conn->connect_error) 
@@ -22,9 +16,11 @@
 	else
 	{
 		//SQL statement based on provided structure
-		$stmt = $conn->prepare("UPDATE Contacts SET FirstName = $FirstName, LastName = $LastName, Phone = $Phone, Email = $Email WHERE ID = $ID AND UserID = $UserID");
-		$stmt->bind_param("ssss", $FirstName, $LastName, $Phone, $Email);
+		$stmt = $conn->prepare("SELECT ID, FirstName, Lastname, Phone, Email, CreationDate FROM Contacts WHERE UserID = $UserID");
 		$stmt->execute();
+
+        sendResultInfoAsJson($stmt);
+
 		$stmt->close();
 		$conn->close();
 		returnWithError("");

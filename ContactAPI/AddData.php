@@ -1,8 +1,10 @@
 <?php
 
-	//Steffano Poggioli, COP4331C, 9/9/2026 Version 1.0
-	//Initial Add API type derived from .php file provided in LAMP project template 
+	//Steffano Poggioli, COP4331C, 9/16/2026 Version 1.1
+	//Initial Add API type derived from .php file provided in LAMP project template, update to add field for User ID
 	$inData = getRequestInfo();
+
+	$UserID = (int)($inData["UserID"] ?? 0);
 	
 	$FirstName = $inData["FirstName"];
 	$LastName = $inData["LastName"];
@@ -18,8 +20,8 @@
 	else
 	{
 		//SQL statement based on provided structure
-		$stmt = $conn->prepare("insert into Contacts (FirstName,LastName,Phone,Email,CreationDate) VALUES(?,?,?,?,?)");
-		$stmt->bind_param("ssssss", $FirstName, $LastName, $Phone, $Email, $CreationDate);
+		$stmt = $conn->prepare("insert into Contacts (FirstName,LastName,Phone,Email,CreationDate,UserID) VALUES(?,?,?,?,?,?)");
+		$stmt->bind_param("sssssss", $FirstName, $LastName, $Phone, $Email, $CreationDate, $UserID);
 		$stmt->execute();
 		$stmt->close();
 		$conn->close();

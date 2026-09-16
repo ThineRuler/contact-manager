@@ -1,9 +1,11 @@
 <?php
 
-	//Steffano Poggioli, COP4331C, 9/14/2026 Version 1.2
-	//API for deleting from database, logic improvement given ID variable field
+	//Steffano Poggioli, COP4331C, 9/16/2026 Version 1.2
+	//API for deleting from database, logic improvement given ID variable field, fix to syntax
 
 	$inData = getRequestInfo();
+
+	$UserID = (int)($inData["UserID"] ?? 0);
 	
 	$FirstName = $inData["FirstName"];
 	$LastName = $inData["LastName"];
@@ -21,7 +23,7 @@
 	else
 	{
 		//Initializing detection of present data
-		$stmt = $conn->prepare("SELECT ID FROM Contacts WHERE ((FirstName = $FirstName) AND (LastName = $LastName) AND (Phone = $Phone) AND (Email = $Email) AND (CreationDate = $CreationDate));
+		$stmt = $conn->prepare("SELECT ID FROM Contacts WHERE ((FirstName = $FirstName) AND (LastName = $LastName) AND (Phone = $Phone) AND (Email = $Email) AND (CreationDate = $CreationDate) AND (UserId = $UserID)");
 		$stmt->execute();
 
 		if (0 < $stmt->num_rows) {
@@ -29,7 +31,7 @@
 
 				$rowID = $firstRow["ID"];
 
-				$deleteSTMT = $conn->prepare("DELETE FROM Contacts WHERE ID = $rowID);
+				$deleteSTMT = $conn->prepare("DELETE FROM Contacts WHERE ID = $rowID");
 				$deleteSTMT->execute();
 				$deleteSTMT->close();
 				break;
