@@ -1,48 +1,77 @@
 <?php
 
-	//Steffano Poggioli, COP4331C, 9/16/2026 Version 1.1
+	//Steffano Poggioli, COP4331C, 9/16/2026 Version 1.2
 	//Initial Add API type derived from .php file provided in LAMP project template, update to add field for User ID
+
+	header("Access-Control-Allow-Origin: *");
+	header("Access-Control-Allow-Headers: Content-Type");
+	header("Access-Control-Allow-Methods: POST, OPTIONS");
+
+	if (($_SERVER["REQUEST_METHOD"] ?? "") === "OPTIONS")
+	{
+		http_response_code(204);
+		exit;
+	}
+
 	$inData = getRequestInfo();
 
 	$UserID = (int)($inData["UserID"] ?? 0);
-	
-	$FirstName = $inData["FirstName"];
-	$LastName = $inData["LastName"];
-    $Phone = $inData["Phone"];
-    $Email = $inData["Email"];
-    $CreationDate = $inData["CreationDate"];
+	$FirstName = trim((string)($inData["FirstName"] ?? ""));
+	$LastName = trim((string)($inData["LastName"] ?? ""));
+	$Phone = trim((string)($inData["Phone"] ?? ""));
+	$Email = trim((string)($inData["Email"] ?? ""));
+	$CreationDate = trim((string)($inData["CreationDate"] ?? ""));
+
+	if ($UserID <= 0 || $FirstName === "" || $LastName === "")
+	{
+		returnWithError("UserID, FirstName, and LastName are required.");
+		exit;
+	}
+
+	if ($CreationDate === "")
+	{
+		$CreationDate = date("Y-m-d H:i:s");
+	}
 
 	$conn = new mysqli("localhost", "TheBeast", "WeLoveCOP4331", "COP4331");
-	if ($conn->connect_error) 
+	if ($conn->connect_error)
 	{
-		returnWithError( $conn->connect_error );
-	} 
-	else
+		returnWithError($conn->connect_error);
+		exit;
+	}
+
+	$stmt = $conn->prepare("INSERT INTO Contacts (FirstName, LastName, Phone, Email, CreationDate, UserID) VALUES (?, ?, ?, ?, ?, ?)");
+	$stmt->bind_param("sssssi", $FirstName, $LastName, $Phone, $Email, $CreationDate, $UserID);
+
+	if ($stmt->execute())
 	{
-		//SQL statement based on provided structure
-		$stmt = $conn->prepare("insert into Contacts (FirstName,LastName,Phone,Email,CreationDate,UserID) VALUES(?,?,?,?,?,?)");
-		$stmt->bind_param("sssssss", $FirstName, $LastName, $Phone, $Email, $CreationDate, $UserID);
-		$stmt->execute();
 		$stmt->close();
 		$conn->close();
 		returnWithError("");
 	}
+	else
+	{
+		$err = $stmt->error;
+		$stmt->close();
+		$conn->close();
+		returnWithError($err);
+	}
 
 	function getRequestInfo()
 	{
-		return json_decode(file_get_contents('php://input'), true);
+		$data = json_decode(file_get_contents("php://input"), true);
+		return is_array($data) ? $data : [];
 	}
 
-	function sendResultInfoAsJson( $obj )
+	function sendResultInfoAsJson($obj)
 	{
-		header('Content-type: application/json');
+		header("Content-type: application/json");
 		echo $obj;
 	}
-	
-	function returnWithError( $err )
+
+	function returnWithError($err)
 	{
-		$retValue = '{"error":"' . $err . '"}';
-		sendResultInfoAsJson( $retValue );
+		sendResultInfoAsJson(json_encode(["error" => $err]));
 	}
-	
+
 ?>
