@@ -1,19 +1,37 @@
 <?php
 
-	//Steffano Poggioli, COP4331C, 9/16/2026 Version 1.2
-	//API for deleting from database, logic improvement given ID variable field, fix to syntax
+	//Steffano Poggioli, COP4331C, 9/17/2026 Version 1.3
+	//API for deleting from database, update to fix parameter binding using help from Acsah's code
+
+	header("Access-Control-Allow-Origin: *");
+	header("Access-Control-Allow-Headers: Content-Type");
+	header("Access-Control-Allow-Methods: POST, OPTIONS");
+
+	if (($_SERVER["REQUEST_METHOD"] ?? "") === "OPTIONS")
+	{
+		http_response_code(204);
+		exit;
+	}
 
 	$inData = getRequestInfo();
 
 	$UserID = (int)($inData["UserID"] ?? 0);
-	
-	$FirstName = $inData["FirstName"];
-	$LastName = $inData["LastName"];
-    $Phone = $inData["Phone"];
-    $Email = $inData["Email"];
-    $CreationDate = $inData["CreationDate"];
+	$FirstName = trim((string)($inData["FirstName"] ?? ""));
+	$LastName = trim((string)($inData["LastName"] ?? ""));
+	$Phone = trim((string)($inData["Phone"] ?? ""));
+	$Email = trim((string)($inData["Email"] ?? ""));
+	$CreationDate = trim((string)($inData["CreationDate"] ?? ""));
 
-	$rowID;
+	if ($UserID <= 0 || $FirstName === "" || $LastName === "")
+	{
+		returnWithError("UserID, FirstName, and LastName are required.");
+		exit;
+	}
+
+	if ($CreationDate === "")
+	{
+		$CreationDate = date("Y-m-d H:i:s");
+	}
 	
 	$conn = new mysqli("localhost", "TheBeast", "WeLoveCOP4331", "COP4331");
 	if ($conn->connect_error) 
@@ -23,30 +41,27 @@
 	else
 	{
 		//Initializing detection of present data
-		$stmt = $conn->prepare("SELECT ID FROM Contacts WHERE ((FirstName = $FirstName) AND (LastName = $LastName) AND (Phone = $Phone) AND (Email = $Email) AND (CreationDate = $CreationDate) AND (UserId = $UserID)");
-		$stmt->execute();
+		$stmt = $conn->prepare("DELETE FROM Contacts WHERE ((FirstName = ?) AND (LastName = ?) AND (Phone = ?) AND (Email = ?) AND (CreationDate = ?) AND (UserId = ?)");
+		$stmt->bind_param("sssssi", $FirstName, $LastName, $Phone, $Email, $CreationDate, $UserID);
 
-		if (0 < $stmt->num_rows) {
-  			while($firstRow = $stmt->fetch_assoc()) {
+		if($stmt->execute()){
 
-				$rowID = $firstRow["ID"];
+			$stmt->close();
+			$conn->close();
+			returnWithError("");
+		}else{
 
-				$deleteSTMT = $conn->prepare("DELETE FROM Contacts WHERE ID = $rowID");
-				$deleteSTMT->execute();
-				$deleteSTMT->close();
-				break;
-
-  			}
-		} 
-
-		$stmt->close();
-		$conn->close();
-		returnWithError("");
+			$err = $stmt->error;
+			$stmt->close();
+			$conn->close();
+			returnWithError($err);
+		}
 	}
 
 	function getRequestInfo()
 	{
-		return json_decode(file_get_contents('php://input'), true);
+		$data = json_decode(file_get_contents("php://input"), true);
+		return is_array($data) ? $data : [];
 	}
 
 	function sendResultInfoAsJson( $obj )
@@ -57,8 +72,7 @@
 	
 	function returnWithError( $err )
 	{
-		$retValue = '{"error":"' . $err . '"}';
-		sendResultInfoAsJson( $retValue );
+		sendResultInfoAsJson(json_encode(["error" => $err]));
 	}
 	
 ?>
