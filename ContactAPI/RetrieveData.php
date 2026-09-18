@@ -1,7 +1,7 @@
 <?php
 
-	//Steffano Poggioli, COP4331C, 9/17/2026 Version 1.3
-	//API for editing existing contacts, update to fix parameter binding using help from Acsah's code
+	//Steffano Poggioli, COP4331C, 9/18/2026 Version 1.3
+	//API for retrieving and sending contact data for a particular user upon login, updated via help from Acsah's code
 
 	header("Access-Control-Allow-Origin: *");
 	header("Access-Control-Allow-Headers: Content-Type");
@@ -16,11 +16,8 @@
 	$inData = getRequestInfo();
 
 	$UserID = (int)($inData["UserID"] ?? 0);
-	$ID = (int)($inData["ID"] ?? 0);
 	$FirstName = trim((string)($inData["FirstName"] ?? ""));
 	$LastName = trim((string)($inData["LastName"] ?? ""));
-	$Phone = trim((string)($inData["Phone"] ?? ""));
-	$Email = trim((string)($inData["Email"] ?? ""));
 
 	if ($UserID <= 0 || $FirstName === "" || $LastName === "")
 	{
@@ -36,22 +33,44 @@
 	else
 	{
 		//SQL statement based on provided structure
-		$stmt = $conn->prepare("UPDATE Contacts SET FirstName = ?, LastName = ?, Phone = ?, Email = ? WHERE ID = ? AND UserID = ?");
-		$stmt->bind_param("ssssii", $FirstName, $LastName, $Phone, $Email, $ID, $UserID);
+		$stmt = $conn->prepare("SELECT ID, FirstName, Lastname, Phone, Email, CreationDate FROM Contacts WHERE UserID = ?");
+        $stmt->bind_param("i", $UserID);
 
-		if ($stmt->execute()) {
+        if ($stmt->execute()){
 
-			$stmt->close();
-			$conn->close();
-			returnWithError("");
-		}else{
+			$result = $stmt->get_result();
 
-			$err = $stmt->error;
-			$stmt->close();
-			$conn->close();
-			returnWithError($err);
-		}
+			$results = [];
+			while ($row = $result->fetch_assoc())
+			{
+				$results[] = [
+					"id"          => (int)$row["ID"],
+					"firstName"   => $row["FirstName"],
+					"lastName"    => $row["LastName"],
+					"phone"       => $row["Phone"],
+					"email"       => $row["Email"],
+					"dateCreated" => $row["CreationDate"]
+				];
+			}
+
+            $stmt->close();
+            $conn->close();
+
+			sendResultInfoAsJson(json_encode([
+				"error"          => "",
+				"results"        => $results
+			]));
+
+            returnWithError("");
+        }else{
+
+            $err = $stmt->error;
+            $stmt->close();
+            $conn->close();
+            returnWithError($err);
+        }
 	}
+
 
 	function getRequestInfo()
 	{
@@ -69,5 +88,5 @@
 	{
 		sendResultInfoAsJson(json_encode(["error" => $err]));
 	}
-	
+
 ?>
