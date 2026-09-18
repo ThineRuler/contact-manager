@@ -1,77 +1,78 @@
 <?php
+    header("Access-Control-Allow-Origin: *");
+    header("Access-Control-Allow-Headers: Content-Type");
+    header("Access-Control-Allow-Methods: POST, OPTIONS");
 
-	//Steffano Poggioli, COP4331C, 9/17/2026 Version 1.4
-	//API for deleting from database, update to fix parameter binding using help from Acsah's code
+    if (($_SERVER["REQUEST_METHOD"] ?? "") === "OPTIONS")
+    {
+        http_response_code(204);
+        exit;
+    }
 
-	header("Access-Control-Allow-Origin: *");
-	header("Access-Control-Allow-Headers: Content-Type");
-	header("Access-Control-Allow-Methods: POST, OPTIONS");
+    $inData = getRequestInfo();
+    $UserID = (int)($inData["UserID"] ?? 0);
+    $ids = [];
 
-	if (($_SERVER["REQUEST_METHOD"] ?? "") === "OPTIONS")
-	{
-		http_response_code(204);
-		exit;
-	}
+    if (isset($inData["ids"]) && is_array($inData["ids"]))
+    {
+        $ids = array_map("intval", $inData["ids"]);
+    }
+    elseif (isset($inData["ID"]))
+    {
+        $ids = [(int)$inData["ID"]];
+    }
 
-	$inData = getRequestInfo();
+    $ids = array_values(array_filter($ids, fn($id) => $id > 0));
 
-	$UserID = (int)($inData["UserID"] ?? 0);
-	$ID = (int)($inData["ID"] ?? 0);
+    if ($UserID <= 0 || empty($ids))
+    {
+        returnWithError("UserID and at least one contact ID are required.");
+        exit;
+    }
 
-	$FirstName = trim((string)($inData["FirstName"] ?? ""));
-	$LastName = trim((string)($inData["LastName"] ?? ""));
+    $conn = new mysqli("localhost", "TheBeast", "WeLoveCOP4331", "COP4331");
+    if ($conn->connect_error)
+    {
+        returnWithError($conn->connect_error);
+        exit;
+    }
 
-	if ($UserID <= 0 || $FirstName === "" || $LastName === "")
-	{
-		returnWithError("UserID, FirstName, and LastName are required.");
-		exit;
-	}
+    $placeholders = implode(",", array_fill(0, count($ids), "?"));
+    $types = str_repeat("i", count($ids));
+    $query = "DELETE FROM Contacts WHERE UserID = ? AND ID IN ($placeholders)";
 
-	if ($CreationDate === "")
-	{
-		$CreationDate = date("Y-m-d H:i:s");
-	}
-	
-	$conn = new mysqli("localhost", "TheBeast", "WeLoveCOP4331", "COP4331");
-	if ($conn->connect_error) 
-	{
-		returnWithError( $conn->connect_error );
-	} 
-	else
-	{
-		//Initializing detection of present data
-		$stmt = $conn->prepare("DELETE FROM Contacts WHERE ID = ? AND UserId = ?");
-		$stmt->bind_param("ii", $ID, $UserID);
+    $stmt = $conn->prepare($query);
+    $params = array_merge([$UserID], $ids);
+    $bindTypes = "i" . $types;
+    $stmt->bind_param($bindTypes, ...$params);
 
-		if($stmt->execute()){
+    if (!$stmt->execute())
+    {
+        $err = $stmt->error;
+        $stmt->close();
+        $conn->close();
+        returnWithError($err);
+        exit;
+    }
 
-			$stmt->close();
-			$conn->close();
-			returnWithError("");
-		}else{
+    $stmt->close();
+    $conn->close();
+    sendResultInfoAsJson(json_encode(["error" => ""]));
 
-			$err = $stmt->error;
-			$stmt->close();
-			$conn->close();
-			returnWithError($err);
-		}
-	}
+    function getRequestInfo()
+    {
+        $data = json_decode(file_get_contents("php://input"), true);
+        return is_array($data) ? $data : [];
+    }
 
-	function getRequestInfo()
-	{
-		$data = json_decode(file_get_contents("php://input"), true);
-		return is_array($data) ? $data : [];
-	}
+    function sendResultInfoAsJson($obj)
+    {
+        header("Content-type: application/json");
+        echo $obj;
+    }
 
-	function sendResultInfoAsJson( $obj )
-	{
-		header('Content-type: application/json');
-		echo $obj;
-	}
-	
-	function returnWithError( $err )
-	{
-		sendResultInfoAsJson(json_encode(["error" => $err]));
-	}
-	
+    function returnWithError($err)
+    {
+        sendResultInfoAsJson(json_encode(["error" => $err]));
+    }
 ?>

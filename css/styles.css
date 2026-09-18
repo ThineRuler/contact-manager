@@ -1,11 +1,19 @@
 body{
-    background-color: #1e1e1e;
+    background-color: #050505;
+    background-image: linear-gradient(rgba(10, 10, 10, 0.72), rgba(10, 10, 10, 0.72)),
+                      url("../images/pegasus.png");
+    background-position: right center;
+    background-repeat: no-repeat;
+    background-size: 60% auto;
+    background-attachment: fixed;
     margin: 0;
     min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
+    color: white;
 }
+
 html, body{
     height: 100%;
     margin: 0;
@@ -33,8 +41,8 @@ html, body{
     position: fixed;
     top: 20px;
     left: 20px;
-    width: 30px;
-    height: 30px;
+    width: 50px;
+    height: 50px;
 }
 
 .contact-manager-layout{
@@ -56,14 +64,24 @@ html, body{
     background-color: #fefcfc;
     border-radius: 25px;
     display: flex;
-    gap: 30px;
+    align-items: center;
+    justify-content: center;
     margin: 10px;
+    padding: 10px 16px;
 }
 
-.header p{
+.header input {
+    width: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
     color: black;
     font-size: 16px;
-    margin: 10px;
+    padding: 8px 10px;
+}
+
+.header input::placeholder {
+    color: #666;
 }
 
 .bottom-options{
@@ -114,6 +132,52 @@ html, body{
     background-color: #f7f7f7;
 }
 
+.select-cell {
+    width: 46px;
+    text-align: center;
+}
+
+.contact-select {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.contact-row-selected {
+    background-color: #fff1bb;
+}
+
+.contact-row-selected:hover {
+    background-color: #ffe99a;
+}
+
+.add-contact-controls,
+.edit-contact-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.add-contact-controls input,
+.add-row input,
+.edit-row input {
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 6px 8px;
+    min-width: 110px;
+}
+
+.save-contact-button,
+.save-edit-button {
+    background-color: #1e1e1e;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 7px 12px;
+    cursor: pointer;
+}
+
 .glow{
     transition: transform 0.3s ease-in-out, filter 0.3s ease-in-out;
 }
@@ -137,6 +201,31 @@ html, body{
   image-rendering: crisp-edges;
 }
 
+.login-form {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+.login-form form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 280px;
+    gap: 12px;
+}
+
+.login-form label {
+    width: 100%;
+    text-align: left;
+}
+
+.login-form input {
+    width: 100%;
+    box-sizing: border-box;
+}
+
 .login{
     margin-top: 15px;
     background-color: #fefcfc;
@@ -144,6 +233,9 @@ html, body{
     width: 200px;
     color: black;
     font-size: 16px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .login a{
