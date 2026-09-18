@@ -1,6 +1,6 @@
 <?php
 
-	//Steffano Poggioli, COP4331C, 9/17/2026 Version 1.2
+	//Steffano Poggioli, COP4331C, 9/18/2026 Version 1.3
 	//API for retrieving and sending contact data for a particular user upon login, updated via help from Acsah's code
 
 	header("Access-Control-Allow-Origin: *");
@@ -34,32 +34,41 @@
 	{
 		//SQL statement based on provided structure
 		$stmt = $conn->prepare("SELECT ID, FirstName, Lastname, Phone, Email, CreationDate FROM Contacts WHERE UserID = ?");
-		$stmt->bind_param("i", $UserID);
+        $stmt->bind_param("i", $UserID);
 
-		if ($stmt->execute()){
+        if ($stmt->execute()){
 
-			$AllData = array();
+			$result = $stmt->get_result();
 
-			if(0 < stmt->num_rows){
-				while($CurrentRow = $stmt->fetch_assoc()){
-
-					$AllData[] = $CurrentRow;
-
-				}
-
-				echo json_encode($AllData);
+			$results = [];
+			while ($row = $result->fetch_assoc())
+			{
+				$results[] = [
+					"id"          => (int)$row["ID"],
+					"firstName"   => $row["FirstName"],
+					"lastName"    => $row["LastName"],
+					"phone"       => $row["Phone"],
+					"email"       => $row["Email"],
+					"dateCreated" => $row["CreationDate"]
+				];
 			}
-			
-			$stmt->close();
-			$conn->close();
-			returnWithError("");
-		}else{
 
-			$err = $stmt->error;
-			$stmt->close();
-			$conn->close();
-			returnWithError($err);
-		}
+            $stmt->close();
+            $conn->close();
+
+			sendResultInfoAsJson(json_encode([
+				"error"          => "",
+				"results"        => $results
+			]));
+
+            returnWithError("");
+        }else{
+
+            $err = $stmt->error;
+            $stmt->close();
+            $conn->close();
+            returnWithError($err);
+        }
 	}
 
 
