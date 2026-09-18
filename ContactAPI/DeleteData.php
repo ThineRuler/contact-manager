@@ -1,6 +1,6 @@
 <?php
 
-	//Steffano Poggioli, COP4331C, 9/17/2026 Version 1.3
+	//Steffano Poggioli, COP4331C, 9/17/2026 Version 1.4
 	//API for deleting from database, update to fix parameter binding using help from Acsah's code
 
 	header("Access-Control-Allow-Origin: *");
@@ -16,11 +16,10 @@
 	$inData = getRequestInfo();
 
 	$UserID = (int)($inData["UserID"] ?? 0);
+	$ID = (int)($inData["ID"] ?? 0);
+
 	$FirstName = trim((string)($inData["FirstName"] ?? ""));
 	$LastName = trim((string)($inData["LastName"] ?? ""));
-	$Phone = trim((string)($inData["Phone"] ?? ""));
-	$Email = trim((string)($inData["Email"] ?? ""));
-	$CreationDate = trim((string)($inData["CreationDate"] ?? ""));
 
 	if ($UserID <= 0 || $FirstName === "" || $LastName === "")
 	{
@@ -41,8 +40,8 @@
 	else
 	{
 		//Initializing detection of present data
-		$stmt = $conn->prepare("DELETE FROM Contacts WHERE ((FirstName = ?) AND (LastName = ?) AND (Phone = ?) AND (Email = ?) AND (CreationDate = ?) AND (UserId = ?)");
-		$stmt->bind_param("sssssi", $FirstName, $LastName, $Phone, $Email, $CreationDate, $UserID);
+		$stmt = $conn->prepare("DELETE FROM Contacts WHERE ID = ? AND UserId = ?");
+		$stmt->bind_param("ii", $ID, $UserID);
 
 		if($stmt->execute()){
 

@@ -1,6 +1,6 @@
 <?php
 
-	//Steffano Poggioli, COP4331C, 9/17/2026 Version 1.1
+	//Steffano Poggioli, COP4331C, 9/17/2026 Version 1.2
 	//API for retrieving and sending contact data for a particular user upon login, updated via help from Acsah's code
 
 	header("Access-Control-Allow-Origin: *");
@@ -38,6 +38,18 @@
 
 		if ($stmt->execute()){
 
+			$AllData = array();
+
+			if(0 < stmt->num_rows){
+				while($CurrentRow = $stmt->fetch_assoc()){
+
+					$AllData[] = $CurrentRow;
+
+				}
+
+				echo json_encode($AllData);
+			}
+			
 			$stmt->close();
 			$conn->close();
 			returnWithError("");
