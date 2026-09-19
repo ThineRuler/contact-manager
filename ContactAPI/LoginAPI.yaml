@@ -1,0 +1,116 @@
+swagger: '2.0'
+info:
+  description: API Documentation for login features for Group 15's small project
+  version: 1.0.0
+  title: Contact Manager Login API
+  contact:
+    email: st336485@ucf.edu
+
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+
+# tags are used for organizing operations
+tags:
+- name: admins
+  description: Secured Admin-only calls
+- name: developers
+  description: Operations available to regular developers
+
+paths:
+  /Login.php:
+    post:
+      tags:
+      - Login
+      summary: User login function
+      operationId: Login
+      description: Takes username and password and returns respective UserID and first/last name
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - in: body
+        name: loginInfo
+        description: Uses username and password to find respective user
+        required: true
+        type: string
+        schema:
+          $ref: '#/definitions/Login'
+      responses:
+        200:
+          description: Successful login
+        204:
+          description: Options requested
+        400:
+          description: bad input parameter
+        500: 
+          description: Internal server error
+
+  /Register.php:
+    post:
+      tags:
+        - Login
+      summary: User account creation
+      operationId: Register
+      description: Takes user name and username/password to create a new respective account
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - in: body
+        name: userInput
+        description: Receives username/password/name input to create account
+        required: true
+        type: string
+        schema:
+          $ref: '#/definitions/Register'
+      responses:
+        200:
+          description: Successful account creation
+        204:
+          description: Options requested
+        400:
+          description: bad input parameter
+        500: 
+          description: Internal server error
+
+definitions:
+  Login:
+    type: object
+    required:
+    - Login
+    - Password
+    properties:
+      Login:
+        type: string
+        example: "SamH"
+      Password:
+        type: string
+        example: "Test"
+  Register:
+    type: object
+    required:
+    - FirstName
+    - LastName
+    - Login
+    - Password
+    properties:
+      FirstName:
+        type: string
+        example: "Acsah"
+      LastName:
+        type: string
+        example: "Test"
+      Login:
+        type: string
+        example: "acsah1"
+      Password:
+        type: string
+        example: "183918fd9qjf9u18"
+
+host: poosd-group15.com
+basePath: /LAMPAPI
+schemes:
+- http
