@@ -9,10 +9,75 @@ const addContactButton = document.getElementById('addContactButton');
 const editContactsButton = document.getElementById('editContactsButton');
 const contactSearch = document.getElementById('contactSearch');
 
+if (document.body) {
+  document.body.classList.add('page-ready');
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  const openLoginButton = document.getElementById('openLoginPanelButton');
+  const closeLoginButton = document.getElementById('closeLoginPanelButton');
+
+  if (openLoginButton) {
+    openLoginButton.addEventListener('click', function () {
+      document.body.classList.add('home-login-active');
+    });
+  }
+
+  if (closeLoginButton) {
+    closeLoginButton.addEventListener('click', function () {
+      document.body.classList.remove('home-login-active');
+    });
+  }
+
+  const transitionLink = document.querySelector('a[href="login.html"]');
+  if (transitionLink) {
+    transitionLink.addEventListener('click', function (event) {
+      event.preventDefault();
+      document.body.classList.remove('page-ready');
+      document.body.classList.add('page-exit');
+      setTimeout(() => {
+        window.location.href = this.href;
+      }, 220);
+    });
+  }
+});
+
 let deleteMode = false;
 let selectedContactIds = new Set();
 let isAddMode = false;
 let isEditMode = false;
+
+const ENABLE_MOCK_CONTACT_PREVIEW = true;
+const MOCK_CONTACTS = [
+  {
+    id: 1,
+    firstName: 'Alicia',
+    lastName: 'Fernandez',
+    phone: '(407) 555-0192',
+    email: 'alicia.fernandez@example.com'
+  },
+  {
+    id: 2,
+    firstName: 'Marcus',
+    lastName: 'Lee',
+    phone: '(305) 555-0146',
+    email: 'marcus.lee@example.com'
+  },
+  {
+    id: 3,
+    firstName: 'Priya',
+    lastName: 'Shah',
+    phone: '(786) 555-0184',
+    email: 'priya.shah@example.com'
+  },
+  {
+    id: 4,
+    firstName: 'Daniel',
+    lastName: 'Nguyen',
+    phone: '(561) 555-0177',
+    email: 'daniel.nguyen@example.com'
+  }
+];
 
 async function parseJsonResponse(response) {
   const text = await response.text();
@@ -113,6 +178,29 @@ function renderContactsTable(contacts) {
 
 async function loadContacts(searchTerm = '') {
   if (!contactsList) {
+    return;
+  }
+
+  if (ENABLE_MOCK_CONTACT_PREVIEW) {
+    const query = searchTerm.trim().toLowerCase();
+    const contacts = MOCK_CONTACTS.filter(contact => {
+      if (!query) {
+        return true;
+      }
+
+      const fullName = `${contact.firstName || ''} ${contact.lastName || ''}`.toLowerCase();
+      const phone = (contact.phone || '').toLowerCase();
+      const email = (contact.email || '').toLowerCase();
+
+      return fullName.includes(query) || phone.includes(query) || email.includes(query);
+    });
+
+    if (managerStatus) {
+      managerStatus.textContent = 'Preview mode: showing mock contact data.';
+      managerStatus.classList.remove('text-danger');
+    }
+
+    renderContactsTable(contacts);
     return;
   }
 

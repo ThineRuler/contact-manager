@@ -15,16 +15,34 @@
 
     </head>
     <body>
-            <div class="content">
+        <div class="landing-shell">
+            <div class="landing-content content">
                 <p class="pixel-text">Knight Signal</p>
-                <img src="images/nitro1.png" class="glow"alt="UCF Logo" width="150" height="150">
-                <button class="login pixel-text"><a href="login.html">login</a></button>
-                <button class="register-button pixel-text" data-toggle="modal" data-target="#registerModal">register</button>
+                <img src="images/nitro1.png" class="glow" alt="UCF Logo" width="150" height="150">
+                <button type="button" id="openLoginPanelButton" class="login pixel-text">login</button>
+                <button type="button" class="register-button pixel-text" data-toggle="modal" data-target="#registerModal">register</button>
             </div>
-            <footer class="footer pixel-text">
-                <p>POOSD-Group 15 2026</p>
-            </footer>
+
+            <aside class="home-login-panel" aria-label="Login panel">
+                <div class="content login-box">
+                    <button type="button" class="back-to-home" id="closeLoginPanelButton" aria-label="Close login panel">back</button>
+                    <p>Knight Signal</p>
+                    <div class="login-form">
+                        <form id="loginForm" novalidate>
+                            <label for="login">Username:</label>
+                            <input type="text" id="login" name="Login" required>
+                            <label for="password">Password:</label>
+                            <input type="password" id="password" name="Password" required>
+                            <div id="loginMessage" class="mt-2" role="alert"></div>
+                            <button type="submit" class="login">sign in</button>
+                        </form>
+                    </div>
+                </div>
+            </aside>
         </div>
+        <footer class="footer pixel-text">
+            <p>POOSD-Group 15 2026</p>
+        </footer>
         <!-- Register Modal -->
         <div class="modal fade pixel-text" id="registerModal" tabindex="-1" role="dialog" aria-labelledby="registerModalLabel" aria-hidden="true">
             <div class="modal-dialog" role="document">
