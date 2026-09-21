@@ -47,7 +47,7 @@ let selectedContactIds = new Set();
 let isAddMode = false;
 let isEditMode = false;
 
-const ENABLE_MOCK_CONTACT_PREVIEW = true;
+const ENABLE_MOCK_CONTACT_PREVIEW = false; // Set to true to enable mock contact preview mode
 const MOCK_CONTACTS = [
   {
     id: 1,
