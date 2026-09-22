@@ -363,12 +363,10 @@ if (loginForm) {
 if (deleteContactsButton) {
   deleteContactsButton.addEventListener('click', async function () {
     const storedUser = localStorage.getItem('user');
-    if (!storedUser) {
-      alert('Please log in to delete contacts.');
-      return;
-    }
 
     if (!deleteMode) {
+      isAddMode = false;
+      isEditMode =false;
       deleteMode = true;
       deleteContactsButton.textContent = 'confirm delete';
       loadContacts();
@@ -377,23 +375,21 @@ if (deleteContactsButton) {
 
     const ids = Array.from(document.querySelectorAll('.contact-select:checked')).map(input => Number(input.dataset.id));
 
-    if (!ids.length) {
-      alert('Select at least one contact to delete.');
+     if (!ids.length) {
       return;
-    }
+    } 
 
     const confirmed = window.confirm(`Delete ${ids.length} selected contact(s)?`);
     if (!confirmed) {
       return;
-    }
+    }  
 
     let user;
     try {
       user = JSON.parse(storedUser);
     } catch (error) {
-      alert('Your session is invalid. Please log in again.');
       return;
-    }
+    } 
 
     try {
       const response = await fetch('LAMPAPI/DeleteData.php', {
@@ -417,13 +413,11 @@ if (deleteContactsButton) {
       deleteMode = false;
       deleteContactsButton.textContent = 'delete contacts';
       await loadContacts();
-      alert('Selected contact(s) deleted successfully.');
     } catch (error) {
       if (managerStatus) {
         managerStatus.textContent = error.message;
         managerStatus.classList.add('text-danger');
       }
-      alert(error.message);
     }
   });
 }
