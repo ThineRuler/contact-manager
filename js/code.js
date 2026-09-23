@@ -264,11 +264,24 @@ if (registerForm) {
   registerForm.addEventListener('submit', async function (event) {
     event.preventDefault();
 
+    const firstNameInput = document.getElementById('registerFirstName');
+    const lastNameInput = document.getElementById('registerLastName');
+    const loginInput = document.getElementById('registerLogin');
+    const passwordInput = document.getElementById('registerPassword');
+
+    if (!firstNameInput || !lastNameInput || !loginInput || !passwordInput) {
+      if (registerMessage) {
+        registerMessage.textContent = 'Registration form is unavailable. Please refresh the page.';
+        registerMessage.classList.add('text-danger');
+      }
+      return;
+    }
+
     const formData = {
-      FirstName: document.getElementById('firstName').value.trim(),
-      LastName: document.getElementById('lastName').value.trim(),
-      Login: document.getElementById('login').value.trim(),
-      Password: document.getElementById('password').value
+      FirstName: firstNameInput.value.trim(),
+      LastName: lastNameInput.value.trim(),
+      Login: loginInput.value.trim(),
+      Password: passwordInput.value
     };
 
     registerMessage.textContent = '';
