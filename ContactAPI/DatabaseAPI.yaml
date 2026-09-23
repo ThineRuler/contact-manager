@@ -1,0 +1,281 @@
+swagger: '2.0'
+info:
+  description: API Documetation for Data manipulation functions for Group 15 Small Project
+  version: 1.0.0
+  title: Contact Manager Data API
+  # put the contact info for your development or API team
+  contact:
+    email: st336485@ucf.edu
+
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+
+# tags are used for organizing operations
+tags:
+- name: admins
+  description: Secured Admin-only calls
+- name: developers
+  description: Operations available to regular developers
+
+paths:
+  /AddData.php:
+    post:
+      tags:
+      - ContactData
+      - Add
+      summary: Adds Contact Info row to database
+      operationId: AddData
+      description: Adds First and last name, Phone, Email, Creation Data assigned to User ID
+      consumes:
+      - application/json
+      produces:
+      - string
+      parameters:
+      - in: body
+        name: contactInput
+        description: Logged-in user's identification ID and input
+        required: true
+        schema: 
+          $ref: '#/definitions/AddData'
+      responses:
+        200:
+          description: Sucessfuly added item
+        400:
+          description: Input parameter error
+        500:
+          description: internal server error
+    
+  /DeleteData.php:
+    post:
+      tags:
+      - ContactData
+      - Delete
+      summary: Removes Contact Info row from database
+      operationId: DeleteData
+      description: Removes all information associated from given row
+      consumes:
+      - application/json
+      produces:
+      - string
+      parameters:
+      - in: body
+        name: contactInput
+        description: Logged-in user's identification ID and input
+        required: true
+        schema: 
+          $ref: '#/definitions/DeleteData'
+      responses: 
+        200:
+          description: Sucessfuly removed item
+        400:
+          description: Input parameter error
+        500:
+          description: internal server error
+  
+  /EditData.php:
+    post:
+      tags:
+      - ContactData
+      - EditData
+      summary: Replaces Contact Info row in database
+      operationId: EditData
+      description: Edits all given contents of a certain row within the database
+      consumes:
+      - application/json
+      produces:
+      - string
+      parameters:
+      - in: body
+        name: contactInput
+        description: Logged-in user's identification ID and input
+        required: true
+        schema: 
+          $ref: '#/definitions/EditData'
+      responses: 
+        200:
+          description: Sucessfuly edited item
+        400:
+          description: Input parameter error
+        500:
+          description: internal server error
+  /RetrieveData.php:
+    post:
+      tags:
+      - ContactData
+      - Return
+      summary: Returns all Contact Info for a certain user
+      operationId: RetrieveData
+      description: Returns all contacts associated to a specific User ID
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - in: body
+        name: contactInput
+        description: Logged-in user's identification ID and input
+        required: true
+        schema: 
+          $ref: '#/definitions/RetrieveData'
+      responses: 
+        200:
+          description: Sucessfuly removed item
+        400:
+          description: Input parameter error
+        500:
+          description: internal server error
+
+  /SearchData.php:
+    post:
+      tags:
+      - ContactData
+      - Search
+      summary: Returns search results given partial query
+      operationId: SearchData
+      description: Returns all contacts associated to a specific User ID determined by partial query
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - in: body
+        name: contactInput
+        description: Logged-in user's identification ID and input
+        required: true
+        schema: 
+          $ref: '#/definitions/SearchData'
+      responses: 
+        200:
+          description: Sucessfully recieved and processed input
+        400:
+          description: Input parameter error
+        500:
+          description: internal server error
+
+
+definitions:
+  AddData:
+    type: object
+    required:
+    - UserID
+    - firstName
+    - lastName
+    - FirstName
+    - LastName
+    - Phone
+    - Email
+    - CreationDate
+    properties:
+      UserID:
+        type: integer
+        example: 2
+      firstName:
+        type: string
+        example: "Sam"
+      lastName:
+        type: string
+        example: "Hill"
+      FirstName:
+        type: string
+        example: "Jane"
+      LastName:
+        type: string
+        example: "Doe"
+      Phone:
+        type: string
+        example: "4075551234"
+      Email:
+        type: string
+        example: "jane@example.com"
+      CreationDate:
+        type: string
+        example: "2026-09-17"
+  DeleteData:
+    type: object
+    required:
+    - UserId
+    - ID
+    properties:
+      UserId:
+        type: integer
+        example: 2
+      ID:
+        type: integer
+        example: 8
+  EditData:
+    type: object
+    required:
+    - UserID
+    - firstName
+    - lastName
+    - FirstName
+    - LastName
+    - Phone
+    - Email
+    properties:
+      UserID:
+        type: integer
+        example: 2
+      firstName:
+        type: string
+        example: "Sam"
+      lastName:
+        type: string
+        example: "Hill"
+      FirstName:
+        type: string
+        example: "Jane"
+      LastName:
+        type: string
+        example: "Doe"
+      Phone:
+        type: string
+        example: "4075551234"
+      Email:
+        type: string
+        example: "jane@example.com"
+  RetrieveData:
+    type: object
+    required:
+    - UserId
+    - firstName
+    - lastName
+    properties:
+      UserId:
+        type: integer
+        example: 2
+      firstName:
+        type: string
+        example: "Sam"
+      lastName:
+        type: string
+        example: "Hill"
+  SearchData:
+    type: object
+    required:
+    - UserId
+    - Search
+    - Page
+    - ResultsPerPage
+    properties:
+      UserId:
+        type: integer
+        example: 2
+      Search:
+        type: string
+        example: "Jan"
+      Page:
+        type: integer
+        minimum: 1
+        example: 1
+      ResultsPerPage:
+        type: integer
+        minimum: 1
+        maximum: 50
+        example: 25
+
+host: poosd-group15.com
+basePath: /LAMPAPI
+schemes:
+- http

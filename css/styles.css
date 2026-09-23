@@ -1,11 +1,99 @@
 body{
-    background-color: #1e1e1e;
+    background-color: #050505;
+    background-image: linear-gradient(rgba(10, 10, 10, 0.72), rgba(10, 10, 10, 0.72)),
+                      url("../images/pegasus.png");
+    background-position: right center;
+    background-repeat: no-repeat;
+    background-size: 60% auto;
+    background-attachment: fixed;
     margin: 0;
+    min-height: 100vh;
+    color: white;
+    opacity: 0;
+    transition: opacity 0.45s ease-in-out;
+    font-family: "Pixelify Sans", monospace;
 }
+
+body.page-ready {
+    opacity: 1;
+}
+
+body.page-exit {
+    opacity: 0;
+}
+
 html, body{
     height: 100%;
     margin: 0;
 }
+
+.landing-shell {
+    position: relative;
+    min-height: 100vh;
+    width: min(1100px, 92vw);
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 40px 0;
+}
+
+.landing-content {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    min-height: 100%;
+    color: white;
+    transition: transform 0.6s ease, opacity 0.6s ease, filter 0.6s ease;
+}
+
+.home-login-panel {
+    width: 0;
+    max-width: 0;
+    opacity: 0;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: width 0.6s ease, opacity 0.4s ease, transform 0.6s ease;
+    transform: translateX(50px);
+}
+
+body.home-login-active .landing-content {
+    transform: translateX(-90px) scale(0.96);
+    opacity: 0.25;
+    filter: blur(1px);
+}
+
+body.home-login-active .home-login-panel {
+    width: 420px;
+    max-width: 420px;
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.manager-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    position: relative;
+}
+
+.manager-page .contact-manager-layout {
+    width: min(1200px, 90vw);
+    min-height: 60vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 16px;
+    margin: 0 auto;
+}
+
 .layout{
     display: flex;
     flex-direction: column;
@@ -25,30 +113,161 @@ html, body{
     color: white;
 }
 
+.login-box{
+    background-color: #00000090;
+    margin: 10px;
+    padding: 24px 18px 18px;
+    border-radius: 25px;
+    border: 3px solid #BA9B37;
+    box-shadow: 0px 4px 10px rgba(255, 255, 255, 0.50);
+    width: 100%;
+    max-width: 360px;
+}
+
 .logo{
     position: fixed;
     top: 20px;
     left: 20px;
-    width: 30px;
-    height: 30px;
+    width: 50px;
+    height: 50px;
 }
 
 .contact-manager-layout{
-    display:grid;
-    grid-template: "header header" auto
-                   "left-column contact-display" 1fr
-                   / 1fr 3fr;
-    gap: 20px;   
+    gap: 50px;
+    width: 120vh;
+    height: 60vh;
+}
+
+.add-btn:hover{
+    cursor: pointer;
+    color: rgb(255, 255, 255);
+    transform: scale(1.5);
+    transition: transform 0.3s ease-in-out, color 0.3s ease-in-out;
+    filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.9))
+            drop-shadow(0 0 16px rgba(255, 255, 255, 0.6));
 }
 
 .header{
-    grid-area: header;
+    background-color: #ffffff90;
+    border-radius: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 10px;
+    padding: 10px 16px;
 }
-.left-column{
-    grid-area: left-column;
+
+.header input {
+    width: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: black;
+    font-size: 16px;
+    padding: 8px 10px;
 }
+
+.header input::placeholder {
+    color: #666;
+}
+
+.bottom-options{
+    display: flex;
+    gap: 10px;
+    margin: 10px;
+    justify-content: center;
+}
+
+.custom-button{
+    border-radius: 10px;
+    width: 120vh;
+    height: 25px;
+    font-size: 14px;
+    border: 3px solid #BA9B37;
+    font-family: "Pixelify Sans", monospace;
+}
+
 .contact-display{
     grid-area: contact-display;
+    background-color: #fefcfc;
+    border-radius: 20px;
+    overflow-y: auto;
+    margin: 10px;
+    border: 3px solid #BA9B37;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.contact-list {
+    width: 100%;
+}
+
+.contact-table {
+    width: 100%;
+    border-collapse: collapse;
+    color: #111;
+    font-size: 14px;
+}
+
+.contact-table th,
+.contact-table td {
+    text-align: left;
+    padding: 12px 14px;
+    border-bottom: 1px solid #d9d9d9;
+}
+
+.contact-table th {
+    background-color: #f1f1f1;
+    font-weight: 700;
+}
+
+.contact-table tr:hover {
+    background-color: #f7f7f7;
+}
+
+.select-cell {
+    width: 46px;
+    text-align: center;
+}
+
+.contact-select {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.contact-row-selected {
+    background-color: #fff1bb;
+}
+
+.contact-row-selected:hover {
+    background-color: #ffe99a;
+}
+
+.add-contact-controls,
+.edit-contact-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.add-contact-controls input,
+.add-row input,
+.edit-row input {
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 6px 8px;
+    min-width: 110px;
+}
+
+.save-contact-button,
+.save-edit-button {
+    background-color: #1e1e1e;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 7px 12px;
+    cursor: pointer;
 }
 
 .glow{
@@ -74,6 +293,46 @@ html, body{
   image-rendering: crisp-edges;
 }
 
+.login-form {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+.login-form form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 280px;
+    max-width: 100%;
+    gap: 10px;
+}
+
+.back-to-home {
+    align-self: flex-start;
+    background: transparent;
+    border: none;
+    color: white;
+    cursor: pointer;
+    margin-bottom: 8px;
+    padding: 0;
+}
+
+.back-to-home:hover {
+    text-decoration: underline;
+}
+
+.login-form label {
+    width: 100%;
+    text-align: left;
+}
+
+.login-form input {
+    width: 100%;
+    box-sizing: border-box;
+}
+
 .login{
     margin-top: 15px;
     background-color: #fefcfc;
@@ -81,6 +340,9 @@ html, body{
     width: 200px;
     color: black;
     font-size: 16px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .login a{
@@ -110,4 +372,48 @@ html, body{
     left: 5px;
     size: 12px;
     font-size: 16px;
+}
+
+.modal-content{
+    border-style: solid;
+    border-width: 2px;
+    border-radius: 10px;
+    border-color: #BA9B37;
+    background-color: #00000090;
+    box-shadow: 0px 4px 10px rgba(255, 255, 255, 0.50);
+}
+
+.modal-body{
+    background-color: transparent;
+    color: white;
+    border-radius: 10px;
+}
+
+.modal-header{
+    background-color: transparent;
+    color: white;
+    border-bottom: none;
+}
+
+.btn{
+    background-color: gold;
+    color: black;
+}
+.btn:hover{
+    background-color: #e6c200;
+}
+
+.close{
+    color: white;
+    opacity: 1;
+}
+
+.close:hover{
+    color: #e6c200;
+    opacity: 1;
+}
+
+.back-to-home{
+    font-size: 16px;
+    font-family: "Pixelify Sans", monospace;
 }
