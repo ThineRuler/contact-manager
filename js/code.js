@@ -13,6 +13,67 @@ if (document.body) {
   document.body.classList.add('page-ready');
 }
 
+function redirectToLogin() {
+  localStorage.removeItem('user');
+  sessionStorage.setItem('loginError', 'Error: Session expired');
+  window.location.href = 'login.html?error=session_expired';
+}
+
+function updateManagerStatusMode() {
+  if (!managerStatus) {
+    return;
+  }
+  managerStatus.className = 'manager-status';
+  if (deleteMode) {
+    managerStatus.textContent = 'Delete mode';
+    managerStatus.classList.add('mode-delete');
+  } else if (isEditMode) {
+    managerStatus.textContent = 'Edit mode';
+    managerStatus.classList.add('mode-edit');
+  } else if (isAddMode) {
+    managerStatus.textContent = 'Add mode';
+    managerStatus.classList.add('mode-add');
+  } else {
+    managerStatus.textContent = 'Contacts';
+  }
+}
+
+function clearManagerStatus() {
+  updateManagerStatusMode();
+}
+
+function showManagerStatus(message, isError = false) {
+  if (!managerStatus) {
+    return;
+  }
+  managerStatus.textContent = message;
+  managerStatus.className = 'manager-status ' + (isError ? 'text-danger' : 'text-success');
+}
+
+function initLoginState() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const sessionError = urlParams.get('error') === 'session_expired' || sessionStorage.getItem('loginError');
+
+  if (sessionError) {
+    sessionStorage.removeItem('loginError');
+    if (urlParams.get('error')) {
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+    const loginMsg = document.getElementById('loginMessage');
+    if (loginMsg) {
+      loginMsg.textContent = 'Error: Session expired';
+      loginMsg.classList.add('text-danger');
+    }
+    document.body.classList.add('home-login-active');
+  }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initLoginState);
+} else {
+  initLoginState();
+}
+
 document.addEventListener('DOMContentLoaded', function () {
   const openLoginButton = document.getElementById('openLoginPanelButton');
   const closeLoginButton = document.getElementById('closeLoginPanelButton');
@@ -123,7 +184,7 @@ function renderContactsTable(contacts) {
         <div class="add-contact-controls">
           <input type="text" id="newLastName" placeholder="Last name">
           <input type="email" id="newEmail" placeholder="Email">
-          <button type="button" id="saveNewContactButton" class="save-contact-button">Save</button>
+          <button type="button" id="saveNewContactButton" class="save-contact-button" disabled>Save</button>
         </div>
       </td>
     </tr>
@@ -143,6 +204,13 @@ function renderContactsTable(contacts) {
       <tbody>
         ${contacts.map(contact => {
           if (isEditMode) {
+            const hasAllFields = Boolean(
+              (contact.firstName || '').trim() &&
+              (contact.lastName || '').trim() &&
+              (contact.phone || '').trim() &&
+              (contact.email || '').trim()
+            );
+
             return `
               <tr class="edit-row" data-id="${contact.id}">
                 <td class="select-cell"></td>
@@ -152,7 +220,7 @@ function renderContactsTable(contacts) {
                 <td>
                   <div class="edit-contact-controls">
                     <input type="text" data-field="lastName" value="${escapeHtml(contact.lastName || '')}">
-                    <button type="button" class="save-edit-button" data-id="${contact.id}">Save</button>
+                    <button type="button" class="save-edit-button" data-id="${contact.id}" ${hasAllFields ? '' : 'disabled'}>Save</button>
                   </div>
                 </td>
               </tr>
@@ -206,20 +274,19 @@ async function loadContacts(searchTerm = '') {
 
   const storedUser = localStorage.getItem('user');
   if (!storedUser) {
-    contactsList.innerHTML = '<p>Please log in to view your contacts.</p>';
+    redirectToLogin();
     return;
   }
 
   let user;
   try {
     user = JSON.parse(storedUser);
+    if (!user || !user.id) {
+      redirectToLogin();
+      return;
+    }
   } catch (error) {
-    contactsList.innerHTML = '<p>Your session is invalid. Please log in again.</p>';
-    return;
-  }
-
-  if (!user.id) {
-    contactsList.innerHTML = '<p>No user session found.</p>';
+    redirectToLogin();
     return;
   }
 
@@ -252,10 +319,7 @@ async function loadContacts(searchTerm = '') {
 
     renderContactsTable(contacts);
   } catch (error) {
-    if (managerStatus) {
-      managerStatus.textContent = error.message;
-      managerStatus.classList.add('text-danger');
-    }
+    showManagerStatus(error.message, true);
     contactsList.innerHTML = '<p>Unable to load contacts.</p>';
   }
 }
@@ -375,38 +439,46 @@ if (loginForm) {
 
 if (deleteContactsButton) {
   deleteContactsButton.addEventListener('click', async function () {
+    clearManagerStatus();
     const storedUser = localStorage.getItem('user');
     if (!storedUser) {
-      alert('Please log in to delete contacts.');
+      redirectToLogin();
       return;
     }
 
     if (!deleteMode) {
+      isAddMode = false;
+      isEditMode = false;
       deleteMode = true;
       deleteContactsButton.textContent = 'confirm delete';
-      loadContacts();
+      await loadContacts();
+      updateManagerStatusMode();
       return;
     }
 
     const ids = Array.from(document.querySelectorAll('.contact-select:checked')).map(input => Number(input.dataset.id));
 
     if (!ids.length) {
-      alert('Select at least one contact to delete.');
+      showManagerStatus('Select at least one contact to delete.', true);
       return;
-    }
+    } 
 
     const confirmed = window.confirm(`Delete ${ids.length} selected contact(s)?`);
     if (!confirmed) {
       return;
-    }
+    }  
 
     let user;
     try {
       user = JSON.parse(storedUser);
+      if (!user || !user.id) {
+        redirectToLogin();
+        return;
+      }
     } catch (error) {
-      alert('Your session is invalid. Please log in again.');
+      redirectToLogin();
       return;
-    }
+    } 
 
     try {
       const response = await fetch('LAMPAPI/DeleteData.php', {
@@ -430,29 +502,30 @@ if (deleteContactsButton) {
       deleteMode = false;
       deleteContactsButton.textContent = 'delete contacts';
       await loadContacts();
-      alert('Selected contact(s) deleted successfully.');
+      showManagerStatus('Contact(s) deleted successfully');
     } catch (error) {
-      if (managerStatus) {
-        managerStatus.textContent = error.message;
-        managerStatus.classList.add('text-danger');
-      }
-      alert(error.message);
+      showManagerStatus(error.message, true);
     }
   });
 }
 
 async function saveNewContact() {
+  clearManagerStatus();
   const storedUser = localStorage.getItem('user');
   if (!storedUser) {
-    alert('Please log in to add a contact.');
+    redirectToLogin();
     return;
   }
 
   let user;
   try {
     user = JSON.parse(storedUser);
+    if (!user || !user.id) {
+      redirectToLogin();
+      return;
+    }
   } catch (error) {
-    alert('Your session is invalid. Please log in again.');
+    redirectToLogin();
     return;
   }
 
@@ -461,9 +534,13 @@ async function saveNewContact() {
   const phone = document.getElementById('newPhone')?.value.trim();
   const email = document.getElementById('newEmail')?.value.trim();
 
-  if (!firstName || !lastName) {
-    alert('First name and last name are required.');
+  if (!firstName || !lastName || !phone || !email) {
     return;
+  }
+
+  const saveButton = document.getElementById('saveNewContactButton');
+  if (saveButton) {
+    saveButton.disabled = true;
   }
 
   try {
@@ -490,13 +567,12 @@ async function saveNewContact() {
 
     isAddMode = false;
     await loadContacts();
-    alert('Contact added successfully.');
+    showManagerStatus('Contact(s) added successfully');
   } catch (error) {
-    if (managerStatus) {
-      managerStatus.textContent = error.message;
-      managerStatus.classList.add('text-danger');
+    if (saveButton) {
+      saveButton.disabled = false;
     }
-    alert(error.message);
+    showManagerStatus(error.message, true);
   }
 }
 
@@ -514,6 +590,7 @@ if (editContactsButton) {
 
     isEditMode = !isEditMode;
     await loadContacts();
+    updateManagerStatusMode();
   });
 }
 
@@ -531,6 +608,7 @@ if (addContactButton) {
 
     isAddMode = !isAddMode;
     await loadContacts();
+    updateManagerStatusMode();
 
     if (isAddMode) {
       const saveButton = document.getElementById('saveNewContactButton');
@@ -543,16 +621,19 @@ if (addContactButton) {
 
 if (contactSearch) {
   contactSearch.addEventListener('input', function () {
+    clearManagerStatus();
     loadContacts(contactSearch.value);
   });
 }
 
 if (contactsList || managerStatus) {
   loadContacts();
+  updateManagerStatusMode();
 }
 
 if (contactsList) {
   contactsList.addEventListener('change', function (event) {
+    clearManagerStatus();
     if (!event.target.classList.contains('contact-select')) {
       return;
     }
@@ -565,12 +646,30 @@ if (contactsList) {
     }
   });
 
-  contactsList.addEventListener('click', async function (event) {
-    const saveEditButton = event.target.closest('.save-edit-button');
-    if (!saveEditButton) {
+  contactsList.addEventListener('input', function (event) {
+    clearManagerStatus();
+    const row = event.target.closest('.add-row, .edit-row');
+    if (!row) {
       return;
     }
 
+    const saveBtn = row.querySelector('#saveNewContactButton, .save-edit-button');
+    if (!saveBtn) {
+      return;
+    }
+
+    const inputs = Array.from(row.querySelectorAll('input'));
+    const allFilled = inputs.every(input => input.value.trim() !== '');
+    saveBtn.disabled = !allFilled;
+  });
+
+  contactsList.addEventListener('click', async function (event) {
+    const saveEditButton = event.target.closest('.save-edit-button');
+    if (!saveEditButton || saveEditButton.disabled) {
+      return;
+    }
+
+    clearManagerStatus();
     const id = Number(saveEditButton.dataset.id);
     const row = saveEditButton.closest('tr');
     const firstName = row.querySelector('[data-field="firstName"]')?.value.trim();
@@ -578,26 +677,30 @@ if (contactsList) {
     const phone = row.querySelector('[data-field="phone"]')?.value.trim();
     const email = row.querySelector('[data-field="email"]')?.value.trim();
 
-    if (!firstName || !lastName) {
-      alert('First name and last name are required.');
+    if (!firstName || !lastName || !phone || !email) {
       return;
     }
 
     const storedUser = localStorage.getItem('user');
     if (!storedUser) {
-      alert('Please log in to update contacts.');
+      redirectToLogin();
       return;
     }
 
     let user;
     try {
       user = JSON.parse(storedUser);
+      if (!user || !user.id) {
+        redirectToLogin();
+        return;
+      }
     } catch (error) {
-      alert('Your session is invalid. Please log in again.');
+      redirectToLogin();
       return;
     }
 
     try {
+      saveEditButton.disabled = true;
       const response = await fetch('LAMPAPI/EditData.php', {
         method: 'POST',
         headers: {
@@ -621,13 +724,10 @@ if (contactsList) {
 
       isEditMode = false;
       await loadContacts();
-      alert('Contact updated successfully.');
+      showManagerStatus('Contact(s) updated successfully');
     } catch (error) {
-      if (managerStatus) {
-        managerStatus.textContent = error.message;
-        managerStatus.classList.add('text-danger');
-      }
-      alert(error.message);
+      saveEditButton.disabled = false;
+      showManagerStatus(error.message, true);
     }
   });
 }
