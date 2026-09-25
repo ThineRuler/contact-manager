@@ -3,11 +3,28 @@ const registerMessage = document.getElementById('registerMessage');
 const loginForm = document.getElementById('loginForm');
 const loginMessage = document.getElementById('loginMessage');
 const contactsList = document.getElementById('contactsList');
+const contactCount = document.getElementById('contactCount');
 const managerStatus = document.getElementById('managerStatus');
 const deleteContactsButton = document.getElementById('deleteContactsButton');
 const addContactButton = document.getElementById('addContactButton');
 const editContactsButton = document.getElementById('editContactsButton');
 const contactSearch = document.getElementById('contactSearch');
+const logoutButton = document.getElementById('logoutButton');
+const cancelDeleteButton = document.getElementById('cancelDeleteButton');
+const logoButton = document.getElementById('logoButton');
+
+if (logoutButton) {
+  logoutButton.addEventListener('click', function () {
+    localStorage.removeItem('user');
+    window.location.href = 'index.html';
+  });
+}
+
+if (logoButton) {
+  logoButton.addEventListener('click', function () {
+    window.location.href = 'index.html';
+  });
+}
 
 if (document.body) {
   document.body.classList.add('page-ready');
@@ -108,6 +125,23 @@ let selectedContactIds = new Set();
 let isAddMode = false;
 let isEditMode = false;
 
+function setDeleteMode(active) {
+  deleteMode = active;
+  if (editContactsButton) {
+    editContactsButton.hidden = active;
+  }
+  if (addContactButton) {
+    addContactButton.hidden = active;
+  }
+  if (cancelDeleteButton) {
+    cancelDeleteButton.hidden = !active;
+  }
+  if (deleteContactsButton) {
+    deleteContactsButton.textContent = active ? 'Confirm Delete' : 'Delete Contacts';
+  }
+  updateManagerStatusMode();
+}
+
 const ENABLE_MOCK_CONTACT_PREVIEW = false; // Set to true to enable mock contact preview mode
 const MOCK_CONTACTS = [
   {
@@ -169,22 +203,34 @@ function escapeHtml(value) {
   });
 }
 
+function updateContactCount(count) {
+  if (contactCount) {
+    contactCount.textContent = count;
+  }
+}
+
 function renderContactsTable(contacts) {
+  updateContactCount(contacts.length);
+
   if (!contacts.length && !isAddMode) {
     contactsList.innerHTML = '<p>No contacts found.</p>';
     return;
   }
 
+  //adding contacts
   const addRow = isAddMode ? `
     <tr class="add-row">
-      <td class="select-cell"></td>
-      <td><input type="text" id="newFirstName" placeholder="First name"></td>
+      <td class="select-cell"></td> 
+      <td class="name-fields">
+        <input type="text" id="newFirstName" placeholder="First Name">
+        <input type="text" id="newLastName" placeholder="Last Name">
+      </td>
       <td><input type="text" id="newPhone" placeholder="Phone"></td>
       <td>
         <div class="add-contact-controls">
-          <input type="text" id="newLastName" placeholder="Last name">
           <input type="email" id="newEmail" placeholder="Email">
           <button type="button" id="saveNewContactButton" class="save-contact-button" disabled>Save</button>
+          <button type="button" id="cancelContactButton" class="cancel-contact-button">Cancel</button>
         </div>
       </td>
     </tr>
@@ -195,13 +241,20 @@ function renderContactsTable(contacts) {
       <thead>
         <tr>
           <th class="select-cell">${deleteMode ? 'Select' : ''}</th>
-          <th>Name</th>
-          <th>Phone Number</th>
-          <th>Email</th>
-          ${isEditMode ? '<th>Action</th>' : ''}
+          ${isEditMode ? `
+            <th>Name</th>
+            <th>Phone Number</th>
+            <th>Email</th>
+            <th>Action</th>
+          ` : `
+            <th>Name</th>
+            <th>Phone Number</th>
+            <th>Email</th>
+          `}
         </tr>
       </thead>
       <tbody>
+        ${addRow}
         ${contacts.map(contact => {
           if (isEditMode) {
             const hasAllFields = Boolean(
@@ -214,13 +267,16 @@ function renderContactsTable(contacts) {
             return `
               <tr class="edit-row" data-id="${contact.id}">
                 <td class="select-cell"></td>
-                <td><input type="text" data-field="firstName" value="${escapeHtml(contact.firstName || '')}"></td>
+                <td class="name-fields">
+                  <input type="text" data-field="firstName" placeholder="First Name" value="${escapeHtml(contact.firstName || '')}">
+                  <input type="text" data-field="lastName" placeholder="Last Name" value="${escapeHtml(contact.lastName || '')}">
+                </td>
                 <td><input type="text" data-field="phone" value="${escapeHtml(contact.phone || '')}"></td>
                 <td><input type="email" data-field="email" value="${escapeHtml(contact.email || '')}"></td>
                 <td>
                   <div class="edit-contact-controls">
-                    <input type="text" data-field="lastName" value="${escapeHtml(contact.lastName || '')}">
                     <button type="button" class="save-edit-button" data-id="${contact.id}" ${hasAllFields ? '' : 'disabled'}>Save</button>
+                    <button type="button" class="cancel-edit-button" data-id="${contact.id}">Cancel</button>
                   </div>
                 </td>
               </tr>
@@ -238,7 +294,6 @@ function renderContactsTable(contacts) {
             </tr>
           `;
         }).join('')}
-        ${addRow}
       </tbody>
     </table>
   `;
@@ -313,6 +368,7 @@ async function loadContacts(searchTerm = '') {
     const contacts = result.results || [];
 
     if (!contacts.length && !isAddMode) {
+      updateContactCount(0);
       contactsList.innerHTML = '<p>No contacts found.</p>';
       return;
     }
@@ -438,6 +494,7 @@ if (loginForm) {
 }
 
 if (deleteContactsButton) {
+
   deleteContactsButton.addEventListener('click', async function () {
     clearManagerStatus();
     const storedUser = localStorage.getItem('user');
@@ -449,10 +506,8 @@ if (deleteContactsButton) {
     if (!deleteMode) {
       isAddMode = false;
       isEditMode = false;
-      deleteMode = true;
-      deleteContactsButton.textContent = 'confirm delete';
+      setDeleteMode(true);
       await loadContacts();
-      updateManagerStatusMode();
       return;
     }
 
@@ -499,13 +554,20 @@ if (deleteContactsButton) {
       }
 
       selectedContactIds.clear();
-      deleteMode = false;
-      deleteContactsButton.textContent = 'delete contacts';
+      setDeleteMode(false);
       await loadContacts();
       showManagerStatus('Contact(s) deleted successfully');
     } catch (error) {
       showManagerStatus(error.message, true);
     }
+  });
+}
+
+if (cancelDeleteButton) {
+  cancelDeleteButton.addEventListener('click', async function () {
+    selectedContactIds.clear();
+    setDeleteMode(false);
+    await loadContacts();
   });
 }
 
@@ -579,9 +641,8 @@ async function saveNewContact() {
 if (editContactsButton) {
   editContactsButton.addEventListener('click', async function () {
     if (deleteMode) {
-      deleteMode = false;
-      deleteContactsButton.textContent = 'delete contacts';
       selectedContactIds.clear();
+      setDeleteMode(false);
     }
 
     if (isAddMode) {
@@ -597,9 +658,8 @@ if (editContactsButton) {
 if (addContactButton) {
   addContactButton.addEventListener('click', async function () {
     if (deleteMode) {
-      deleteMode = false;
-      deleteContactsButton.textContent = 'delete contacts';
       selectedContactIds.clear();
+      setDeleteMode(false);
     }
 
     if (isEditMode) {
@@ -664,6 +724,20 @@ if (contactsList) {
   });
 
   contactsList.addEventListener('click', async function (event) {
+    const cancelContactButton = event.target.closest('#cancelContactButton');
+    if (cancelContactButton) {
+      isAddMode = false;
+      await loadContacts();
+      updateManagerStatusMode();
+      return;
+    }
+    const cancelEditButton = event.target.closest('.cancel-edit-button');
+    if (cancelEditButton) {
+      isEditMode = false;
+      await loadContacts();
+      updateManagerStatusMode();
+      return;
+    }
     const saveEditButton = event.target.closest('.save-edit-button');
     if (!saveEditButton || saveEditButton.disabled) {
       return;
