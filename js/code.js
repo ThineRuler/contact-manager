@@ -10,10 +10,18 @@ const addContactButton = document.getElementById('addContactButton');
 const editContactsButton = document.getElementById('editContactsButton');
 const contactSearch = document.getElementById('contactSearch');
 const logoutButton = document.getElementById('logoutButton');
+const cancelDeleteButton = document.getElementById('cancelDeleteButton');
+const logoButton = document.getElementById('logoButton');
 
 if (logoutButton) {
   logoutButton.addEventListener('click', function () {
     localStorage.removeItem('user');
+    window.location.href = 'index.html';
+  });
+}
+
+if (logoButton) {
+  logoButton.addEventListener('click', function () {
     window.location.href = 'index.html';
   });
 }
@@ -56,7 +64,14 @@ let selectedContactIds = new Set();
 let isAddMode = false;
 let isEditMode = false;
 
-const ENABLE_MOCK_CONTACT_PREVIEW = true; // Set to true to enable mock contact preview mode
+function setDeleteMode(active) {
+  deleteMode = active;
+  editContactsButton.hidden = active;
+  addContactButton.hidden = active;
+  cancelDeleteButton.hidden = !active;
+}
+
+const ENABLE_MOCK_CONTACT_PREVIEW = false; // Set to true to enable mock contact preview mode
 const MOCK_CONTACTS = [
   {
     id: 1,
@@ -169,6 +184,7 @@ function renderContactsTable(contacts) {
         </tr>
       </thead>
       <tbody>
+        ${addRow}
         ${contacts.map(contact => {
           if (isEditMode) {
             return `
@@ -201,7 +217,6 @@ function renderContactsTable(contacts) {
             </tr>
           `;
         }).join('')}
-        ${addRow}
       </tbody>
     </table>
   `;
@@ -419,9 +434,9 @@ if (deleteContactsButton) {
     }
 
     if (!deleteMode) {
-      deleteMode = true;
+      setDeleteMode(true);
       deleteContactsButton.textContent = 'Confirm Delete';
-      loadContacts();
+      await loadContacts();
       return;
     }
 
@@ -464,7 +479,7 @@ if (deleteContactsButton) {
       }
 
       selectedContactIds.clear();
-      deleteMode = false;
+      setDeleteMode(false);
       deleteContactsButton.textContent = 'Delete Contacts';
       await loadContacts();
       alert('Selected contact(s) deleted successfully.');
@@ -475,6 +490,15 @@ if (deleteContactsButton) {
       }
       alert(error.message);
     }
+  });
+}
+
+if (cancelDeleteButton) {
+  cancelDeleteButton.addEventListener('click', async function () {
+    setDeleteMode(false);
+    selectedContactIds.clear();
+    deleteContactsButton.textContent = 'Delete Contacts';
+    await loadContacts();
   });
 }
 
@@ -540,7 +564,7 @@ async function saveNewContact() {
 if (editContactsButton) {
   editContactsButton.addEventListener('click', async function () {
     if (deleteMode) {
-      deleteMode = false;
+      setDeleteMode(false);
       deleteContactsButton.textContent = 'Delete Contacts';
       selectedContactIds.clear();
     }
@@ -557,7 +581,7 @@ if (editContactsButton) {
 if (addContactButton) {
   addContactButton.addEventListener('click', async function () {
     if (deleteMode) {
-      deleteMode = false;
+      setDeleteMode(false);
       deleteContactsButton.textContent = 'Delete Contacts';
       selectedContactIds.clear();
     }
