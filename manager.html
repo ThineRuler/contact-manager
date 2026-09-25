@@ -7,7 +7,11 @@
     </head>
     <body class="manager-page">
         <img class="logo" src="images/nitro1.png" alt="UCF Logo" width="200" height="200">
+        <h1 class="manager-title">Welcome Back</h1>
+        <button id="logoutButton" class="logout-button">Log Out</button>
+
         <div class="contact-manager-layout">
+            <p style="margin-left: 20px;">Easily manage your contacts</p>
             <div class="header">
                 <input id="contactSearch" type="text" placeholder="Search contacts..." aria-label="Search contacts">
             </div>
@@ -15,10 +19,13 @@
                 <div id="managerStatus" class="manager-status"></div>
                 <div id="contactsList" class="contact-list"></div>
             </div>
+            <div class="contact-counter">
+                <span id="contactCount">0</span> Contact(s) Total
+            </div>
             <div class="bottom-options">
-                <button id="editContactsButton" class="custom-button">edit contacts</button>
-                <button id="deleteContactsButton" class="custom-button">delete contacts</button>
-                <button id="addContactButton" class="custom-button">add contacts</button>
+                <button id="editContactsButton" class="custom-button">Edit Contacts</button>
+                <button id="deleteContactsButton" class="custom-button">Delete Contacts</button>
+                <button id="addContactButton" class="custom-button">Add Contacts</button>
             </div>
         </div>
 

@@ -1,6 +1,6 @@
 body{
-    background-color: #050505;
-    background-image: linear-gradient(rgba(10, 10, 10, 0.72), rgba(10, 10, 10, 0.72)),
+    background-color: #000000;
+    background-image: linear-gradient(rgba(0, 0, 0, 0.86), rgba(0, 0, 0, 0.86)),
                       url("../images/pegasus.png");
     background-position: right center;
     background-repeat: no-repeat;
@@ -86,7 +86,7 @@ body.home-login-active .home-login-panel {
 
 .manager-page .contact-manager-layout {
     width: min(1200px, 90vw);
-    min-height: 60vh;
+    min-height: 85vh;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -130,6 +130,16 @@ body.home-login-active .home-login-panel {
     left: 20px;
     width: 50px;
     height: 50px;
+}
+
+.manager-title {
+    position: fixed;
+    top: 29px;
+    left: 85px;
+    margin: 0;
+    color: white;
+    font-size: clamp(22px, 3vw, 34px);
+    line-height: 1.2;
 }
 
 .contact-manager-layout{
@@ -197,6 +207,18 @@ body.home-login-active .home-login-panel {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
+.contact-counter {
+    color: white;
+    text-align: center;
+    font-size: 16px;
+}
+
+.contact-counter span {
+    color: #BA9B37;
+    font-size: 20px;
+    font-weight: 700;
+}
+
 .contact-list {
     width: 100%;
 }
@@ -251,6 +273,12 @@ body.home-login-active .home-login-panel {
     flex-wrap: wrap;
 }
 
+.name-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
 .add-contact-controls input,
 .add-row input,
 .edit-row input {
@@ -262,6 +290,16 @@ body.home-login-active .home-login-panel {
 
 .save-contact-button,
 .save-edit-button {
+    background-color: #e6c200;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 7px 12px;
+    cursor: pointer;
+}
+
+.cancel-contact-button,
+.cancel-edit-button {
     background-color: #1e1e1e;
     color: white;
     border: none;
@@ -417,3 +455,17 @@ body.home-login-active .home-login-panel {
     font-size: 16px;
     font-family: "Pixelify Sans", monospace;
 }
+
+.logout-button {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 10px 18px;
+    border: 2px solid #BA9B37;
+    border-radius: 8px;
+    background-color: #000;
+    color: white;
+    cursor: pointer;
+    font-family: "Pixelify Sans", monospace;
+}
+

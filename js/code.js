@@ -3,11 +3,20 @@ const registerMessage = document.getElementById('registerMessage');
 const loginForm = document.getElementById('loginForm');
 const loginMessage = document.getElementById('loginMessage');
 const contactsList = document.getElementById('contactsList');
+const contactCount = document.getElementById('contactCount');
 const managerStatus = document.getElementById('managerStatus');
 const deleteContactsButton = document.getElementById('deleteContactsButton');
 const addContactButton = document.getElementById('addContactButton');
 const editContactsButton = document.getElementById('editContactsButton');
 const contactSearch = document.getElementById('contactSearch');
+const logoutButton = document.getElementById('logoutButton');
+
+if (logoutButton) {
+  logoutButton.addEventListener('click', function () {
+    localStorage.removeItem('user');
+    window.location.href = 'index.html';
+  });
+}
 
 if (document.body) {
   document.body.classList.add('page-ready');
@@ -47,7 +56,7 @@ let selectedContactIds = new Set();
 let isAddMode = false;
 let isEditMode = false;
 
-const ENABLE_MOCK_CONTACT_PREVIEW = false; // Set to true to enable mock contact preview mode
+const ENABLE_MOCK_CONTACT_PREVIEW = true; // Set to true to enable mock contact preview mode
 const MOCK_CONTACTS = [
   {
     id: 1,
@@ -108,22 +117,35 @@ function escapeHtml(value) {
   });
 }
 
+function updateContactCount(count) {
+  if (contactCount) {
+    contactCount.textContent = count;
+  }
+}
+
 function renderContactsTable(contacts) {
+  updateContactCount(contacts.length);
+
   if (!contacts.length && !isAddMode) {
     contactsList.innerHTML = '<p>No contacts found.</p>';
     return;
   }
 
+  //adding contacts
   const addRow = isAddMode ? `
     <tr class="add-row">
-      <td class="select-cell"></td>
-      <td><input type="text" id="newFirstName" placeholder="First name"></td>
+      <td class="select-cell"></td> 
+      <td class="name-fields">
+        <input type="text" id="newFirstName" placeholder="First Name">
+        <input type="text" id="newLastName" placeholder="Last Name">
+      </td>
       <td><input type="text" id="newPhone" placeholder="Phone"></td>
       <td>
         <div class="add-contact-controls">
-          <input type="text" id="newLastName" placeholder="Last name">
           <input type="email" id="newEmail" placeholder="Email">
           <button type="button" id="saveNewContactButton" class="save-contact-button">Save</button>
+          <button type="button" id="cancelContactButton" class="cancel-contact-button">Cancel</button>
+
         </div>
       </td>
     </tr>
@@ -134,10 +156,16 @@ function renderContactsTable(contacts) {
       <thead>
         <tr>
           <th class="select-cell">${deleteMode ? 'Select' : ''}</th>
-          <th>Name</th>
-          <th>Phone Number</th>
-          <th>Email</th>
-          ${isEditMode ? '<th>Action</th>' : ''}
+          ${isEditMode ? `
+            <th>Name</th>
+            <th>Phone Number</th>
+            <th>Email</th>
+            <th>Action</th>
+          ` : `
+            <th>Name</th>
+            <th>Phone Number</th>
+            <th>Email</th>
+          `}
         </tr>
       </thead>
       <tbody>
@@ -146,13 +174,16 @@ function renderContactsTable(contacts) {
             return `
               <tr class="edit-row" data-id="${contact.id}">
                 <td class="select-cell"></td>
-                <td><input type="text" data-field="firstName" value="${escapeHtml(contact.firstName || '')}"></td>
+                <td class="name-fields">
+                  <input type="text" data-field="firstName" placeholder="First Name" value="${escapeHtml(contact.firstName || '')}">
+                  <input type="text" data-field="lastName" placeholder="Last Name" value="${escapeHtml(contact.lastName || '')}">
+                </td>
                 <td><input type="text" data-field="phone" value="${escapeHtml(contact.phone || '')}"></td>
                 <td><input type="email" data-field="email" value="${escapeHtml(contact.email || '')}"></td>
                 <td>
                   <div class="edit-contact-controls">
-                    <input type="text" data-field="lastName" value="${escapeHtml(contact.lastName || '')}">
                     <button type="button" class="save-edit-button" data-id="${contact.id}">Save</button>
+                    <button type="button" class="cancel-edit-button" data-id="${contact.id}">Cancel</button>
                   </div>
                 </td>
               </tr>
@@ -206,6 +237,7 @@ async function loadContacts(searchTerm = '') {
 
   const storedUser = localStorage.getItem('user');
   if (!storedUser) {
+    updateContactCount(0);
     contactsList.innerHTML = '<p>Please log in to view your contacts.</p>';
     return;
   }
@@ -214,11 +246,13 @@ async function loadContacts(searchTerm = '') {
   try {
     user = JSON.parse(storedUser);
   } catch (error) {
+    updateContactCount(0);
     contactsList.innerHTML = '<p>Your session is invalid. Please log in again.</p>';
     return;
   }
 
   if (!user.id) {
+    updateContactCount(0);
     contactsList.innerHTML = '<p>No user session found.</p>';
     return;
   }
@@ -246,12 +280,14 @@ async function loadContacts(searchTerm = '') {
     const contacts = result.results || [];
 
     if (!contacts.length && !isAddMode) {
+      updateContactCount(0);
       contactsList.innerHTML = '<p>No contacts found.</p>';
       return;
     }
 
     renderContactsTable(contacts);
   } catch (error) {
+    updateContactCount(0);
     if (managerStatus) {
       managerStatus.textContent = error.message;
       managerStatus.classList.add('text-danger');
@@ -374,6 +410,7 @@ if (loginForm) {
 }
 
 if (deleteContactsButton) {
+
   deleteContactsButton.addEventListener('click', async function () {
     const storedUser = localStorage.getItem('user');
     if (!storedUser) {
@@ -383,7 +420,7 @@ if (deleteContactsButton) {
 
     if (!deleteMode) {
       deleteMode = true;
-      deleteContactsButton.textContent = 'confirm delete';
+      deleteContactsButton.textContent = 'Confirm Delete';
       loadContacts();
       return;
     }
@@ -428,7 +465,7 @@ if (deleteContactsButton) {
 
       selectedContactIds.clear();
       deleteMode = false;
-      deleteContactsButton.textContent = 'delete contacts';
+      deleteContactsButton.textContent = 'Delete Contacts';
       await loadContacts();
       alert('Selected contact(s) deleted successfully.');
     } catch (error) {
@@ -504,7 +541,7 @@ if (editContactsButton) {
   editContactsButton.addEventListener('click', async function () {
     if (deleteMode) {
       deleteMode = false;
-      deleteContactsButton.textContent = 'delete contacts';
+      deleteContactsButton.textContent = 'Delete Contacts';
       selectedContactIds.clear();
     }
 
@@ -521,7 +558,7 @@ if (addContactButton) {
   addContactButton.addEventListener('click', async function () {
     if (deleteMode) {
       deleteMode = false;
-      deleteContactsButton.textContent = 'delete contacts';
+      deleteContactsButton.textContent = 'Delete Contacts';
       selectedContactIds.clear();
     }
 
@@ -566,6 +603,18 @@ if (contactsList) {
   });
 
   contactsList.addEventListener('click', async function (event) {
+    const cancelContactButton = event.target.closest('#cancelContactButton');
+    if (cancelContactButton) {
+      isAddMode = false;
+      await loadContacts();
+      return;
+    }
+    const cancelEditButton = event.target.closest('.cancel-edit-button');
+    if (cancelEditButton) {
+      isEditMode = false;
+      await loadContacts();
+      return;
+    }
     const saveEditButton = event.target.closest('.save-edit-button');
     if (!saveEditButton) {
       return;
