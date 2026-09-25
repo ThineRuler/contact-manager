@@ -127,9 +127,19 @@ let isEditMode = false;
 
 function setDeleteMode(active) {
   deleteMode = active;
-  editContactsButton.hidden = active;
-  addContactButton.hidden = active;
-  cancelDeleteButton.hidden = !active;
+  if (editContactsButton) {
+    editContactsButton.hidden = active;
+  }
+  if (addContactButton) {
+    addContactButton.hidden = active;
+  }
+  if (cancelDeleteButton) {
+    cancelDeleteButton.hidden = !active;
+  }
+  if (deleteContactsButton) {
+    deleteContactsButton.textContent = active ? 'Confirm Delete' : 'Delete Contacts';
+  }
+  updateManagerStatusMode();
 }
 
 const ENABLE_MOCK_CONTACT_PREVIEW = false; // Set to true to enable mock contact preview mode
@@ -220,6 +230,7 @@ function renderContactsTable(contacts) {
         <div class="add-contact-controls">
           <input type="email" id="newEmail" placeholder="Email">
           <button type="button" id="saveNewContactButton" class="save-contact-button" disabled>Save</button>
+          <button type="button" id="cancelContactButton" class="cancel-contact-button">Cancel</button>
         </div>
       </td>
     </tr>
@@ -264,8 +275,8 @@ function renderContactsTable(contacts) {
                 <td><input type="email" data-field="email" value="${escapeHtml(contact.email || '')}"></td>
                 <td>
                   <div class="edit-contact-controls">
-                    <input type="text" data-field="lastName" value="${escapeHtml(contact.lastName || '')}">
                     <button type="button" class="save-edit-button" data-id="${contact.id}" ${hasAllFields ? '' : 'disabled'}>Save</button>
+                    <button type="button" class="cancel-edit-button" data-id="${contact.id}">Cancel</button>
                   </div>
                 </td>
               </tr>
@@ -495,10 +506,8 @@ if (deleteContactsButton) {
     if (!deleteMode) {
       isAddMode = false;
       isEditMode = false;
-      deleteMode = true;
-      deleteContactsButton.textContent = 'confirm delete';
+      setDeleteMode(true);
       await loadContacts();
-      updateManagerStatusMode();
       return;
     }
 
@@ -546,7 +555,6 @@ if (deleteContactsButton) {
 
       selectedContactIds.clear();
       setDeleteMode(false);
-      deleteContactsButton.textContent = 'Delete Contacts';
       await loadContacts();
       showManagerStatus('Contact(s) deleted successfully');
     } catch (error) {
@@ -557,9 +565,8 @@ if (deleteContactsButton) {
 
 if (cancelDeleteButton) {
   cancelDeleteButton.addEventListener('click', async function () {
-    setDeleteMode(false);
     selectedContactIds.clear();
-    deleteContactsButton.textContent = 'Delete Contacts';
+    setDeleteMode(false);
     await loadContacts();
   });
 }
@@ -634,9 +641,8 @@ async function saveNewContact() {
 if (editContactsButton) {
   editContactsButton.addEventListener('click', async function () {
     if (deleteMode) {
-      setDeleteMode(false);
-      deleteContactsButton.textContent = 'Delete Contacts';
       selectedContactIds.clear();
+      setDeleteMode(false);
     }
 
     if (isAddMode) {
@@ -652,9 +658,8 @@ if (editContactsButton) {
 if (addContactButton) {
   addContactButton.addEventListener('click', async function () {
     if (deleteMode) {
-      setDeleteMode(false);
-      deleteContactsButton.textContent = 'Delete Contacts';
       selectedContactIds.clear();
+      setDeleteMode(false);
     }
 
     if (isEditMode) {
@@ -723,12 +728,14 @@ if (contactsList) {
     if (cancelContactButton) {
       isAddMode = false;
       await loadContacts();
+      updateManagerStatusMode();
       return;
     }
     const cancelEditButton = event.target.closest('.cancel-edit-button');
     if (cancelEditButton) {
       isEditMode = false;
       await loadContacts();
+      updateManagerStatusMode();
       return;
     }
     const saveEditButton = event.target.closest('.save-edit-button');
