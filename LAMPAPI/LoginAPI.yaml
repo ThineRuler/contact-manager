@@ -1,6 +1,6 @@
 swagger: '2.0'
 info:
-  description: API Documentation for login features for Group 15's small project
+  description: API documentation for sign-in and account creation for Group 15's small project
   version: 1.0.0
   title: Contact Manager Login API
   contact:
@@ -10,12 +10,11 @@ info:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
 
-# tags are used for organizing operations
 tags:
-- name: admins
-  description: Secured Admin-only calls
-- name: developers
-  description: Operations available to regular developers
+- name: Login
+  description: Sign in with an existing username and password.
+- name: Register
+  description: Create a new account.
 
 paths:
   /Login.php:
@@ -34,7 +33,6 @@ paths:
         name: loginInfo
         description: Uses username and password to find respective user
         required: true
-        type: string
         schema:
           $ref: '#/definitions/Login'
       responses:
@@ -44,13 +42,13 @@ paths:
           description: Options requested
         400:
           description: bad input parameter
-        500: 
+        500:
           description: Internal server error
 
   /Register.php:
     post:
       tags:
-        - Login
+      - Register
       summary: User account creation
       operationId: Register
       description: Takes user name and username/password to create a new respective account
@@ -63,7 +61,6 @@ paths:
         name: userInput
         description: Receives username/password/name input to create account
         required: true
-        type: string
         schema:
           $ref: '#/definitions/Register'
       responses:
@@ -73,7 +70,7 @@ paths:
           description: Options requested
         400:
           description: bad input parameter
-        500: 
+        500:
           description: Internal server error
 
 definitions:
