@@ -110,4 +110,4 @@ definitions:
 host: poosd-group15.com
 basePath: /LAMPAPI
 schemes:
-- http
+- https
